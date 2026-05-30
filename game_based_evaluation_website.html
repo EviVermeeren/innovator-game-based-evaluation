@@ -1,0 +1,1720 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Onderzoek: Game-based evaluatie</title>
+    <!-- Chart.js toevoegen voor interactieve grafieken -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --primary: #3b82f6;
+        --primary-dark: #1d4ed8;
+        --primary-light: #eff6ff;
+        --secondary: #10b981;
+        --secondary-light: #ecfdf5;
+        --danger: #ef4444;
+        --danger-light: #fef2f2;
+        --slate-800: #1e293b;
+        --slate-700: #334155;
+        --slate-600: #475569;
+        --slate-100: #f1f5f9;
+        --slate-50: #f8fafc;
+        --white: #ffffff;
+        --shadow:
+          0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        --radius: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Oxygen,
+          Ubuntu,
+          Cantarell,
+          sans-serif;
+        background-color: var(--slate-50);
+        color: var(--slate-700);
+        line-height: 1.6;
+        display: flex;
+      }
+
+      /* Sidebar Navigation */
+      nav {
+        width: 280px;
+        height: 100vh;
+        background-color: var(--slate-800);
+        color: var(--white);
+        position: fixed;
+        top: 0;
+        left: 0;
+        padding: 2rem 1.5rem;
+        overflow-y: auto;
+        z-index: 100;
+      }
+
+      nav h1 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        color: var(--white);
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--slate-700);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      nav h1 span {
+        color: var(--secondary);
+      }
+
+      nav ul {
+        list-style: none;
+      }
+
+      nav ul li {
+        margin-bottom: 0.5rem;
+      }
+
+      nav ul li a {
+        color: var(--slate-100);
+        text-decoration: none;
+        font-size: 0.95rem;
+        display: block;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+      }
+
+      nav ul li a:hover,
+      nav ul li a.active {
+        background-color: var(--primary-dark);
+        color: var(--white);
+        font-weight: 600;
+      }
+
+      /* Main Content Container */
+      main {
+        margin-left: 280px;
+        padding: 3rem;
+        width: calc(100% - 280px);
+        max-width: 1200px;
+      }
+
+      /* Hero Header */
+      .hero {
+        background: linear-gradient(135deg, var(--slate-800) 0%, #0f172a 100%);
+        color: var(--white);
+        padding: 3rem;
+        border-radius: var(--radius);
+        margin-bottom: 3rem;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero h2 {
+        font-size: 2.25rem;
+        margin-bottom: 1rem;
+        font-weight: 800;
+      }
+
+      .hero p {
+        color: var(--slate-100);
+        font-size: 1.1rem;
+        max-width: 800px;
+      }
+
+      .phase-badge {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background-color: var(--secondary);
+        color: var(--slate-800);
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+      }
+
+      /* Sections */
+      section {
+        background-color: var(--white);
+        padding: 2.5rem;
+        border-radius: var(--radius);
+        margin-bottom: 2.5rem;
+        box-shadow: var(--shadow);
+        scroll-margin-top: 2rem;
+      }
+
+      section h3 {
+        font-size: 1.5rem;
+        color: var(--slate-800);
+        margin-bottom: 1.5rem;
+        border-left: 5px solid var(--primary);
+        padding-left: 0.75rem;
+      }
+
+      p {
+        margin-bottom: 1.25rem;
+        color: var(--slate-600);
+        font-size: 1rem;
+      }
+
+      /* Key Metrics & Quick Data Grid */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .card-data {
+        background-color: var(--slate-50);
+        border: 1px solid var(--slate-100);
+        padding: 1.5rem;
+        border-radius: 8px;
+      }
+
+      .card-data h4 {
+        color: var(--slate-800);
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+      }
+
+      .card-data ul {
+        list-style-type: none;
+      }
+
+      .card-data ul li {
+        position: relative;
+        padding-left: 1.25rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+      }
+
+      .card-data ul li::before {
+        content: "•";
+        color: var(--primary);
+        font-weight: bold;
+        position: absolute;
+        left: 0;
+      }
+
+      /* Phase Timeline Tabs Style */
+      .timeline {
+        position: relative;
+        border-left: 2px solid var(--slate-100);
+        padding-left: 1.5rem;
+        margin-left: 0.5rem;
+      }
+
+      .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+      }
+
+      .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: -29px;
+        top: 4px;
+        background: var(--primary);
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 4px solid var(--white);
+        box-shadow: 0 0 0 2px var(--primary);
+      }
+
+      .timeline-item h4 {
+        font-size: 1.2rem;
+        color: var(--slate-800);
+        margin-bottom: 0.5rem;
+      }
+
+      .results-box {
+        display: flex;
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      .badge-score {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .badge-score.classic {
+        background-color: var(--danger-light);
+        color: var(--danger);
+      }
+
+      .badge-score.gamified {
+        background-color: var(--secondary-light);
+        color: var(--secondary);
+      }
+
+      /* Word framing comparison block */
+      .framing-container {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .framing-card {
+        flex: 1;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px dashed transparent;
+      }
+
+      .framing-card.negative {
+        background-color: var(--danger-light);
+        border-color: var(--danger);
+      }
+
+      .framing-card.positive {
+        background-color: var(--secondary-light);
+        border-color: var(--secondary);
+      }
+
+      .framing-card h4 {
+        margin-bottom: 0.5rem;
+      }
+
+      /* Graphical Analytics Section */
+      .chart-wrapper {
+        background: var(--slate-50);
+        border: 1px solid var(--slate-100);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .chart-header h4 {
+        color: var(--slate-800);
+        font-size: 1.1rem;
+      }
+
+      .chart-container-js {
+        position: relative;
+        width: 100%;
+        height: 160px;
+        margin-bottom: 1rem;
+      }
+
+      .chart-conclusion {
+        font-size: 0.9rem;
+        font-style: italic;
+        color: var(--slate-600);
+        border-top: 1px solid var(--slate-100);
+        padding-top: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      /* Quotes Styling (Literal Cards) */
+      .quotes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .quote-card {
+        background: linear-gradient(135deg, #ffffff 0%, var(--slate-50) 100%);
+        border: 1px solid var(--slate-100);
+        padding: 1.5rem;
+        border-radius: var(--radius);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        position: relative;
+        transition: transform 0.2s ease;
+      }
+
+      .quote-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow);
+      }
+
+      .quote-card::before {
+        content: "“";
+        font-size: 4rem;
+        color: rgba(59, 130, 246, 0.1);
+        position: absolute;
+        top: -10px;
+        left: 10px;
+        line-height: 1;
+      }
+
+      .quote-text {
+        font-size: 0.95rem;
+        font-style: italic;
+        color: var(--slate-700);
+        position: relative;
+        z-index: 1;
+        margin-bottom: 1rem;
+      }
+
+      .quote-author {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary);
+        text-align: right;
+      }
+
+      /* Action Buttons & Links */
+      .btn-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: background-color 0.2s ease;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .btn-link:hover {
+        background-color: var(--primary);
+        color: var(--white);
+      }
+
+      /* Tool Features Styling */
+      .tool-box {
+        background-color: var(--primary-light);
+        border-left: 4px solid var(--primary);
+        padding: 1.5rem;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        margin-top: 1rem;
+      }
+
+      .tool-box h4 {
+        color: var(--primary-dark);
+        margin-bottom: 0.5rem;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        body {
+          flex-direction: column;
+        }
+        nav {
+          width: 100%;
+          height: auto;
+          position: relative;
+          padding: 1rem;
+        }
+        main {
+          margin-left: 0;
+          width: 100%;
+          padding: 1.5rem;
+        }
+        .framing-container {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar Menu -->
+    <nav>
+      <h1><span>🎮</span>Evi Vermeêren</h1>
+      <ul>
+        <li><a href="#inleiding" class="active">Inleiding</a></li>
+        <li><a href="#onderzoeksfases">Verloop van het onderzoek</a></li>
+        <li><a href="#toets-effect">Het "toets" effect</a></li>
+        <li>
+          <a href="#resultaten-leerlingen">Resultaten leerlingenbevraging</a>
+        </li>
+        <li><a href="#reacties-leerlingen">Enkele quotes</a></li>
+        <li>
+          <a href="#leerkrachtenbevraging">Resultaten leerkrachtenbevraging</a>
+        </li>
+        <li><a href="#van-experiment-naar-tool">De flexibele tool</a></li>
+        <li><a href="#reflectie-toekomst">Reflectie & toekomst</a></li>
+        <li><a href="#inspiratie-literatuur">Literatuur & bronnen</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main Workspace -->
+    <main>
+      <!-- Dashboard Hero Box -->
+      <div class="hero">
+        <span class="phase-badge">Fase 2: Delen resultaten</span>
+        <h2>Game-based evaluatie</h2>
+        <p>
+          Een overzichtelijke website met alle informatie rond de invloed van
+          gamified evaluatievormen op motivatie, betrokkenheid, faalangst en
+          leerresultaten in de eerste graad secundair onderwijs.
+        </p>
+      </div>
+
+      <!-- Section 1: Inleiding & Concept -->
+      <section id="inleiding">
+        <h3>Wat is game-based evaluatie?</h3>
+        <p>
+          Kort gezegd: leerlingen evalueren door middel van een game. In plaats
+          van een klassieke toets met pen en papier (of een saai invulformulier
+          op de computer), gebruiken we speelse elementen om te testen wat
+          leerlingen hebben opgestoken. Je kent dit waarschijnlijk al! Denk maar
+          aan populaire tools zoals <strong>Kahoot!</strong>,
+          <strong>Interland The Game</strong> van Google, of bepaalde speelse
+          opdrachten in <strong>Bookwidgets</strong> (zoals een
+          kruiswoordraadsel of een escape room).
+        </p>
+
+        <h3 style="margin-top: 3rem">Wat heb ik gedaan in dit onderzoek?</h3>
+        <p>
+          Ik vroeg me af wat er gebeurt als we het zware woord "toets" vervangen
+          door een spel. Daarom heb ik in dit project zelf zo'n 'game-evaluatie'
+          ontworpen en getest in de klas. Het belangrijkste hierbij was dat we
+          geen appels met peren vergeleken:
+          <strong
+            >de leerdoelen, de vragen en de manier waarop ik punten gaf, bleven
+            exact hetzelfde als bij een gewone toets.</strong
+          >
+          Enkel het 'jasje' (de vorm van de evaluatie) werd veranderd. Het is
+          ook getest in verschillende klassen, om te zien of het effect
+          consistent is.
+        </p>
+
+        <h3 style="margin-top: 3rem">Onderzoeksopzet</h3>
+        <p>
+          Met dit experiment wilde ik onderzoeken of deze andere aanpak echt een
+          verschil maakt voor de leerlingen. Mijn hoofdvraag was:
+        </p>
+
+        <div class="grid-2">
+          <div class="card-data">
+            <h4>Onderzoeksvraag</h4>
+            <p
+              style="
+                font-style: italic;
+                color: var(--slate-800);
+                margin-bottom: 0;
+              "
+            >
+              “In welke mate beïnvloedt een gamified evaluatievorm, met behoud
+              van dezelfde leerdoelen en evaluatiecriteria, de motivatie,
+              houding, resultaten en betrokkenheid van leerlingen ten opzichte
+              van evaluatie?”
+            </p>
+          </div>
+          <div class="card-data">
+            <h4>Doelgroep & context</h4>
+            <ul>
+              <li><strong>Aantal klassen:</strong> 3 diverse klasgroepen</li>
+              <li>
+                <strong>Doelgroepleeftijd:</strong> 1e jaar (1e graad) – 12 tot
+                13-jarigen
+              </li>
+              <li><strong>Vakgebied:</strong> Seminarie ICT</li>
+              <li>
+                <strong>Extra data:</strong> Bevraging bij leerkrachten uit de
+                1e graad
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card-data">
+          <h4>Hoe heb ik dit gemeten? (Dataverzameling)</h4>
+          <p>
+            Om zeker te zijn van mijn resultaten, heb ik niet naar één ding
+            gekeken, maar informatie verzameld via verschillende kanalen:
+          </p>
+          <div class="grid-3" style="margin-bottom: 0">
+            <div
+              style="
+                background: var(--white);
+                padding: 0.75rem;
+                border-radius: 6px;
+                text-align: center;
+                font-weight: 600;
+                font-size: 0.9rem;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+              "
+            >
+              📈 Toetsresultaten
+            </div>
+            <div
+              style="
+                background: var(--white);
+                padding: 0.75rem;
+                border-radius: 6px;
+                text-align: center;
+                font-weight: 600;
+                font-size: 0.9rem;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+              "
+            >
+              📝 Enquêtes bij leerlingen
+            </div>
+            <div
+              style="
+                background: var(--white);
+                padding: 0.75rem;
+                border-radius: 6px;
+                text-align: center;
+                font-weight: 600;
+                font-size: 0.9rem;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+              "
+            >
+              🎥 Videobeelden van reacties
+            </div>
+            <div
+              style="
+                background: var(--white);
+                padding: 0.75rem;
+                border-radius: 6px;
+                text-align: center;
+                font-weight: 600;
+                font-size: 0.9rem;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+              "
+            >
+              👁️ Eigen observaties in de klas
+            </div>
+            <div
+              style="
+                background: var(--white);
+                padding: 0.75rem;
+                border-radius: 6px;
+                text-align: center;
+                font-weight: 600;
+                font-size: 0.9rem;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+              "
+            >
+              👨‍🏫 Bevraging bij collega's
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Onderzoeksfases -->
+      <section id="onderzoeksfases">
+        <h3>Verloop van het onderzoek</h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <h4>Fase 1 – Het eerste experiment</h4>
+            <p>
+              Ik ben gestart met een simpel en klein experiment, zonder enquêtes
+              of uitgebreide bevragingen. Puur door goed te observeren in de
+              klas vergeleek ik een klassieke toets met een gamified versie, om
+              zo meteen te zien of deze speelse aanpak al voor een merkbare
+              verbetering zorgde.
+            </p>
+            <div class="grid-2">
+              <div class="card-data" style="background: #fff">
+                <strong>Klassieke toets (onderwerp: het internet)</strong>
+                <div class="results-box">
+                  <span class="badge-score classic">Gemiddelde: 7.0 / 10</span>
+                </div>
+                <a
+                  href="https://docs.google.com/document/d/1pYbj2B30_sfhaIzOlNcHt3x-Fp3XSXLK/edit?usp=sharing&ouid=107840845125896455508&rtpof=true&sd=true"
+                  class="btn-link"
+                  >📄 Bekijk document</a
+                >
+              </div>
+              <div class="card-data" style="background: #fff">
+                <strong>Gamified evaluatie (onderwerp: 3D)</strong>
+                <div class="results-box">
+                  <span class="badge-score gamified">Gemiddelde: 9.3 / 10</span>
+                </div>
+                <a
+                  href="https://drive.google.com/file/d/1FEnNMluiZd8y11gEL2Lsv_hZNuAGLaB9/view?usp=sharing"
+                  class="btn-link"
+                  >📄 Bekijk document</a
+                >
+              </div>
+            </div>
+            <div
+              class="card-data"
+              style="
+                background: var(--secondary-light);
+                border-color: var(--secondary);
+                margin-bottom: 4rem;
+              "
+            >
+              <strong>👀 Eerste directe observaties:</strong>
+              <p style="margin: 0; font-size: 0.95rem; color: var(--slate-700)">
+                Dit leverde meteen heel goede resultaten op! De leerlingen
+                reageerden een stuk positiever and ervoeren een lagere drempel
+                om actief deel te nemen. Bovendien lagen de behaalde
+                testresultaten gemiddeld opvallend hoger bij de gamified
+                variant.
+              </p>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <h4>Fase 2 – Toets hardware</h4>
+            <p>
+              In deze eerste test ben ik gestart met een basic game met enkele
+              meerkeuzevragen. Ik verdeelde de toetsen (klassiek en gamified)
+              over verschillende parallelklassen, zodat de resultaten niet
+              beïnvloed zouden worden door niveauverschillen tussen de klassen.
+            </p>
+            <ul>
+              <li>
+                <strong>Klas A & B:</strong> Evaluatie via een klassieke
+                schriftelijke toetsvorm.
+              </li>
+              <li><strong>Klas C:</strong> Evaluatie via interactieve game.</li>
+              <li>
+                <strong>Dataverzameling:</strong> Digitale enquêtes en
+                observaties tijdens en na de toetsmomenten.
+              </li>
+            </ul>
+
+            <div class="grid-2" style="margin-top: 2rem">
+              <div class="card-data" style="background: #fff">
+                <strong>Klassieke toets</strong>
+                <div class="results-box">
+                  <span class="badge-score classic">Gemiddelde: 7.0 / 10</span>
+                </div>
+                <a
+                  href="https://drive.google.com/file/d/1BLgqcUJgE6U4lJ2lC9r7dpE73_rmCDQ2/view?usp=sharing"
+                  class="btn-link"
+                  >📄 Bekijk document</a
+                >
+              </div>
+              <div class="card-data" style="background: #fff">
+                <strong>Gamified evaluatie</strong>
+                <div class="results-box">
+                  <span class="badge-score gamified">Gemiddelde: 8.6 / 10</span>
+                </div>
+                <a
+                  href="https://evivermeeren.github.io/game-pc-hardware/"
+                  class="btn-link"
+                  >📄 Bekijk game</a
+                >
+              </div>
+            </div>
+            <div
+              class="card-data"
+              style="
+                background: var(--secondary-light);
+                border-color: var(--secondary);
+                margin-bottom: 4rem;
+              "
+            >
+              <strong>👀 Eerste directe observaties:</strong>
+              <p style="margin: 0; font-size: 0.95rem; color: var(--slate-700)">
+                Het verschil was meteen te merken: the standaard toets leverde
+                in de ene klas een hoop gezucht en geklaag op. In de andere klas
+                was de sfeer direct heel anders! De leerlingen werden meteen
+                enthousiast van het idee van een game, hadden superveel zin om
+                te starten en ervoeren amper stress tijdens de evaluatie zelf.
+              </p>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <h4>Fase 3 – Toets stop motion</h4>
+            <p>
+              Om de verschillen tussen de klassen te beperken, heb ik de
+              evaluatievormen omgewisseld binnen de parallelklassen. Op die
+              manier kond ik goed zien wat de resultaten waren binnen de
+              verschillende evaluaties. Dit zorgde er opnieuw voor dat ik geen
+              vertekende resultaten kreeg door niveauverschillen of door een
+              ander onderwerp.
+            </p>
+            <ul>
+              <li>
+                <strong>Klas A & B:</strong> Geëvalueerd via een zelf ontworpen
+                game based evaluatievorm (game) rond stop motion.
+              </li>
+              <li>
+                <strong>Klas C:</strong> Geëvalueerd via de klassieke
+                schriftelijke toetsvorm.
+              </li>
+              <li>
+                <strong>Dataverzameling:</strong> Digitale enquêtes en realtime
+                observaties tijdens en na de toetsmomenten.
+              </li>
+            </ul>
+
+            <div class="grid-2" style="margin-top: 2rem">
+              <div class="card-data" style="background: #fff">
+                <strong>Klassieke toets</strong>
+                <div class="results-box">
+                  <span class="badge-score classic">Gemiddelde: 7.0 / 10</span>
+                </div>
+              </div>
+              <div class="card-data" style="background: #fff">
+                <strong>Gamified evaluatie</strong>
+                <div class="results-box">
+                  <span class="badge-score gamified">Gemiddelde: 8.6 / 10</span>
+                </div>
+                <a
+                  href="https://evivermeeren.github.io/game-stop-motion/"
+                  class="btn-link"
+                  >📄 Bekijk game</a
+                >
+              </div>
+            </div>
+            <div
+              class="card-data"
+              style="
+                background: var(--secondary-light);
+                border-color: var(--secondary);
+                margin-bottom: 4rem;
+              "
+            >
+              <strong>👀 Eerste directe observaties:</strong>
+              <p style="margin: 0; font-size: 0.95rem; color: var(--slate-700)">
+                De reacties waren duidelijk. Waar de standaard toets in de
+                eerste klassen voor diepe zuchten and geklaag zorgde (net zoals
+                bij de toets rond hardware), hing er in de andere klas een heel
+                andere sfeer. De leerlingen werden enthousiast van de game,
+                wilden meteen beginnen and maakten de evaluatie zonder al te
+                veel stress.
+              </p>
+            </div>
+
+            <div
+              class="tool-box"
+              style="
+                margin-top: 2rem;
+                background: var(--slate-50);
+                border-color: var(--slate-600);
+              "
+            >
+              <h4>🛠️ Technische verbeteringen & iteraties aan de game:</h4>
+              <ul style="margin-left: 1rem; margin-top: 0.5rem">
+                <li>
+                  <strong>Identificatie:</strong> Mogelijkheid toegevoegd om de
+                  naam van de leerling in te vullen.
+                </li>
+                <li>
+                  <strong>Database koppeling:</strong> Resultaten en antwoorden
+                  worden automatisch doorgestuurd naar de database van de
+                  leerkracht.
+                </li>
+                <li>
+                  <strong>Beveiliging:</strong> Vragen verplaatst naar een
+                  extern bestand om te vermijden dat leerlingen antwoorden via
+                  de broncode opzoeken.
+                </li>
+                <li>
+                  <strong>Beleving:</strong> Speelse spelelementen (zoals custom
+                  spelers) toegevoegd om de immersie te verhogen.
+                </li>
+                <li>
+                  <strong>Directe feedback:</strong> Directe inhoudelijke
+                  feedback bij zowel correcte als foutieve antwoorden voor
+                  onmiddellijk inzicht in het leerproces.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Toets vs Game framing -->
+      <section id="toets-effect">
+        <h3>De psychologische invloed van het woord “toets”</h3>
+        <p>
+          Tijdens het onderzoek heb ik ook iets heel interessants getest: wat
+          doet de aankondiging van een toets nu eigenlijk met het gevoel en de
+          stress van een leerling? Ik heb in twee klassen de toets anders
+          aangekondigd, terwijl de inhoud van de vragen en de leerdoelen precies
+          hetzelfde waren bij beide evaluaties.
+        </p>
+
+        <div class="framing-container">
+          <div class="framing-card negative">
+            <h4>🔴 Groep 1</h4>
+            <p
+              style="font-style: italic; font-weight: 600; color: var(--danger)"
+            >
+              “Vandaag maken jullie een toets.”
+            </p>
+            <p style="font-size: 0.9rem; margin-bottom: 0">
+              <strong>Reactie:</strong>negatief geladen sfeer, hoorbare zuchten,
+              onmiddellijke stijging van stresssignalen...
+            </p>
+          </div>
+          <div class="framing-card positive">
+            <h4>🟢 Groep 2</h4>
+            <p
+              style="
+                font-style: italic;
+                font-weight: 600;
+                color: var(--secondary);
+              "
+            >
+              “Vandaag spelen jullie individueel een game.”
+            </p>
+            <p style="font-size: 0.9rem; margin-bottom: 0">
+              <strong>Reactie:</strong> Enthousiasme, veel vragen, focus,
+              glimlachende gezichten and een proactieve houding.
+            </p>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem">
+          <p>
+            <strong>🎥 Video:</strong> De reacties van de leerlingen zijn op de
+            toetsaankondiging zijn vastgelegd.
+          </p>
+          <a
+            href="https://drive.google.com/file/d/10e2JpwYM73MNCtnz_hpHZxWEIzwmtRzs/view?usp=sharing"
+            class="btn-link"
+            >🎬 Bekijk video: reactie toetsaankondiging</a
+          >
+        </div>
+      </section>
+
+      <!-- Section 4: Resultaten Analytics -->
+      <section id="resultaten-leerlingen">
+        <h3>Bevraging leerlingen</h3>
+        <p>
+          In de grafieken hieronder zie je de resultaten van de enquêtes. Ik zet
+          hier de cijfers van de klassieke toets rechtstreeks af tegen die van
+          de game-evaluatie.
+        </p>
+        <p>
+          <em>Opmerking bij de ruwe Excel-data: </em> Forms maakt voor zowel de
+          toets als de game aparte kolommen aan, waardoor de Excel-tabel een
+          vertekend beeld geeft omdat de antwoorden van de game een heel stuk
+          verder naar rechts staan. De percentages in deze grafieken zijn dan
+          ook overgenomen uit de overzichtelijke grafieken in Google Forms zelf,
+          waar de resultaten wel correct gekoppeld zijn.
+        </p>
+
+        <div style="margin-bottom: 2rem">
+          <a
+            href="https://forms.gle/DFi96nYQ9fjiHkU86"
+            class="btn-link"
+            style="background-color: #fef3c7; color: #d97706"
+            >📋 Link naar de leerlingenbevraging</a
+          >
+          <a
+            href="https://docs.google.com/spreadsheets/d/1IQwH3piqUocQ1PDskkcJcIZsHcrnhy_XD8OaV0lu0Qs/edit?resourcekey=&gid=802301086#gid=802301086"
+            class="btn-link"
+            style="background-color: #d1fae5; color: #065f46"
+          >
+            📊 Excel met resultaten</a
+          >
+        </div>
+
+        <!-- Chart 1: Stress (Interactief) -->
+        <div class="chart-wrapper">
+          <div class="chart-header">
+            <h4>1. Ervaren stress & faalangst tijdens evaluatie</h4>
+            <span style="font-weight: bold; color: var(--danger)"
+              >Lager = beter</span
+            >
+          </div>
+          <div class="chart-container-js">
+            <canvas id="stressChart"></canvas>
+          </div>
+          <div class="chart-conclusion">
+            <strong>Korte conclusie:</strong> Waar de klassieke toets bij het
+            overgrote deel (72%) voor stress zorgt, is dit bij de game slechts
+            21%.
+          </div>
+        </div>
+
+        <!-- Chart 2: Motivatie (Interactief) -->
+        <div class="chart-wrapper">
+          <div class="chart-header">
+            <h4>2. Intrinsieke motivatie om te starten</h4>
+            <span style="font-weight: bold; color: var(--secondary)"
+              >Hoger = beter</span
+            >
+          </div>
+          <div class="chart-container-js">
+            <canvas id="motivationChart"></canvas>
+          </div>
+          <div class="chart-conclusion">
+            <strong>Korte conclusie:</strong> Bijna niemand (16%) heeft zin in
+            een normale toets, maar zodra het een game is, heeft 84% wel zin om
+            te beginnen.
+          </div>
+        </div>
+
+        <!-- Chart 3: Betrokkenheid (Interactief) -->
+        <div class="chart-wrapper">
+          <div class="chart-header">
+            <h4>3. Betrokkenheid en focus tijdens de evaluatie</h4>
+            <span style="font-weight: bold; color: var(--secondary)"
+              >Hoger = beter</span
+            >
+          </div>
+          <div class="chart-container-js">
+            <canvas id="focusChart"></canvas>
+          </div>
+          <div class="chart-conclusion">
+            <strong>Korte conclusie:</strong> Tijdens de game bleef maar liefst
+            91% van de leerlingen gefocust. Het speelse element zorgt er
+            blijkbaar voor dat ze veel dieper in de opdracht gezogen worden dan
+            bij een papieren toets, hier is dit 43%.
+          </div>
+        </div>
+
+        <!-- Chart 4: Feedback / Leerresultaat (Interactief) -->
+        <div class="chart-wrapper">
+          <div class="chart-header">
+            <h4>4. Inzicht in eigen resultaten (formatieve feedback)</h4>
+            <span style="font-weight: bold; color: var(--secondary)"
+              >Hoger = beter</span
+            >
+          </div>
+          <div class="chart-container-js">
+            <canvas id="feedbackChart"></canvas>
+          </div>
+          <div class="chart-conclusion">
+            <strong>Korte conclusie:</strong> Bij een normale toets tasten 31%
+            van de leerlingen na afloop in het duister, maar door de directe
+            feedback in de game weet 88% meteen wat ze goed deden en wat ze nog
+            moeten oefenen.
+          </div>
+        </div>
+
+        <!-- Algemene voorkeur widget -->
+        <div
+          class="card-data"
+          style="
+            background: linear-gradient(
+              135deg,
+              var(--primary-light) 0%,
+              #e0f2fe 100%
+            );
+            border-color: var(--primary);
+            margin-top: 2rem;
+          "
+        >
+          <h4>📊 Einduitslag: Wat vinden leerlingen nu écht beter?</h4>
+          <p style="margin-bottom: 1rem; font-size: 0.95rem">
+            Van alle binnengekomen antwoorden uit de parallelklassen (48
+            respondenten) is de voorkeur als volgt verdeeld:
+          </p>
+          <div
+            style="
+              display: flex;
+              gap: 1.5rem;
+              flex-wrap: wrap;
+              font-weight: bold;
+            "
+          >
+            <span
+              style="
+                background: var(--white);
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                box-shadow: var(--shadow);
+                color: var(--secondary);
+              "
+              >🎮 Game op computer: 87,5%</span
+            >
+            <span
+              style="
+                background: var(--white);
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                box-shadow: var(--shadow);
+                color: var(--slate-600);
+              "
+              >🤷 Geen voorkeur: 8,3%</span
+            >
+            <span
+              style="
+                background: var(--white);
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                box-shadow: var(--shadow);
+                color: var(--danger);
+              "
+              >📄 Toets op papier: 4,2%</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 6: Leerkrachtenbevraging -->
+      <section id="leerkrachtenbevraging">
+        <h3>Bevraging leerkrachten</h3>
+        <p>
+          Naast de leerlingen heb ik ook mijn collega's bij dit onderzoek
+          betrokken. Zij hebben natuurlijk ontzettend veel ervaring in de
+          praktijk, dus ik was heel benieuwd hoe zij denken over de haalbaarheid
+          en of ze zo'n game-evaluatie zelf ook zouden gebruiken in hun lessen.
+        </p>
+
+        <div style="margin-bottom: 1.5rem">
+          <a
+            href="https://forms.gle/mLYaR8MWAwueKGnq8"
+            class="btn-link"
+            style="background-color: #e0f2fe; color: #0369a1"
+            >📋 Link naar de leerkrachtenbevraging</a
+          >
+          <a
+            href="https://docs.google.com/spreadsheets/d/1akDagBNB-VW-y1zUGNkc0i1D_XpwKIuQJ6h-1rZPBJc/edit?resourcekey=&gid=454880836#gid=454880836"
+            class="btn-link"
+            style="background-color: #f3e8ff; color: #6b21a8"
+          >
+            📊 Excel met resultaten</a
+          >
+        </div>
+
+        <div class="grid-3">
+          <div class="card-data" style="text-align: center">
+            <div
+              style="font-size: 2rem; font-weight: 800; color: var(--primary)"
+            >
+              13
+            </div>
+            <div
+              style="
+                font-size: 0.9rem;
+                color: var(--slate-600);
+                font-weight: 600;
+              "
+            >
+              Bevraagde leerkrachten
+            </div>
+            <div style="font-size: 0.8rem; color: var(--slate-600)">
+              Uit de 1e graad
+            </div>
+          </div>
+          <div class="card-data" style="text-align: center">
+            <div
+              style="font-size: 2rem; font-weight: 800; color: var(--secondary)"
+            >
+              85%
+            </div>
+            <div
+              style="
+                font-size: 0.9rem;
+                color: var(--slate-600);
+                font-weight: 600;
+              "
+            >
+              Openheid voor idee
+            </div>
+            <div style="font-size: 0.8rem; color: var(--slate-600)">
+              Staat positief tegenover games als evaluatie
+            </div>
+          </div>
+          <div class="card-data" style="text-align: center">
+            <div
+              style="font-size: 2rem; font-weight: 800; color: var(--primary)"
+            >
+              54%
+            </div>
+            <div
+              style="
+                font-size: 0.9rem;
+                color: var(--slate-600);
+                font-weight: 600;
+              "
+            >
+              Bereid tot gebruik
+            </div>
+            <div style="font-size: 0.8rem; color: var(--slate-600)">
+              Durft de game te gebruiken voor echte punten
+            </div>
+          </div>
+        </div>
+
+        <div class="card-data">
+          <h4>De belangrijkste inzichten van mijn collega's:</h4>
+          <ul style="margin-left: 1rem">
+            <li>
+              <strong>Enorme consensus over stressvermindering:</strong> 92% van
+              de leerkrachten (12 van de 13) is ervan overtuigd dat game-based
+              evaluatie helpt om de teststress bij leerlingen te verlagen.
+            </li>
+            <li>
+              <strong>Vakgeschiktheid en haalbaarheid:</strong> Een mooie
+              meerderheid van 62% ziet het nu al volledig zitten als een
+              haalbaar alternatief binnen hun eigen vakgebied, voornamelijk voor
+              het testen van feitenkennis of procedurele stappenplannen (zoals
+              bij talen en ICT opdrachten).
+            </li>
+            <li>
+              <strong>De grote drempels (tijd & techniek):</strong> Er zijn ook
+              terechte zorgen. De grootste drempels die collega's ervaren zijn
+              de tijdrovende voorbereidingstijd (gemiddelde drempelscore van 4.2
+              op 5) en de twijfel over de eigen technologische vaardigheden om
+              zelf een game te bouwen of te beheren (gemiddelde score van 3.8 op
+              5).
+            </li>
+            <li>
+              <strong>Vraag naar ondersteuning:</strong> De resultaten laten
+              zien dat leerkrachten heel graag willen starten, maar nood hebben
+              aan kant-en-klare, vakspecifieke games die kant-en-klaar
+              aansluiten op de leerplandoelen, gecombineerd met een korte
+              professionele vorming.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="van-experiment-naar-tool">
+        <h3>Van experiment naar handige tool</h3>
+        <p>
+          Ik heb de game in eerste instantie ontwikkeld voor mijn eigen lessen,
+          maar ik wilde heel graag testen of andere leerkrachten er ook mee aan
+          de slag konden. Daarom heb ik een eerste prototype gebouwd waarbij een
+          leerkracht zelf heel eenvoudig eigen vragen en antwoorden kan
+          invullen.
+        </p>
+        <p>
+          Dit prototype heb ik ook effectief getest bij een twee leerkrachten.
+          Ik heb deze testmomenten gefilmd en uitgebreide feedback gevraagd om
+          te zien hoe zij het gebruik ervoeren. Hoewel de basis staat, is de
+          tool op dit moment nog niet perfect: er ontbreekt bijvoorbeeld nog een
+          gekoppelde database en een functie om de game met één klik automatisch
+          online te zetten voor de leerlingen. Dit zijn werkpunten voor de
+          toekomst!
+        </p>
+
+        <div class="tool-box">
+          <h4>🚀 Hoe werkt het huidige prototype?</h4>
+          <p>
+            De tool is zo ontworpen dat collega's zonder enige programmeerkennis
+            toch een gepersonaliseerde game kunnen maken:
+          </p>
+          <ul style="margin-left: 1rem; font-size: 0.95rem">
+            <li>
+              <strong>Eigen vragen invoeren:</strong> Via een simpel invulscherm
+              typt de leerkracht de gewenste vragen, stellingen en antwoorden
+              in.
+            </li>
+            <li>
+              <strong>Automatische game-opbouw:</strong> De code verwerkt deze
+              input direct tot een speelbaar kruiswoordraadsel of spelvorm.
+            </li>
+            <li>
+              <strong>Inhoud blijft centraal:</strong> Het speelse is puur de
+              verpakking; de leerdoelen en strikte evaluatiecriteria van het vak
+              blijven perfect behouden.
+            </li>
+          </ul>
+        </div>
+
+        <div style="margin-top: 1.5rem">
+          <p>
+            <strong>📂 Beschikbare materialen:</strong>
+          </p>
+          <a
+            href="https://evivermeeren.github.io/game-pchardware/"
+            class="btn-link"
+            >🎮 Test de game zelf</a
+          >
+          <a
+            href="https://drive.google.com/file/d/1oMzkGLjmRmG05_RtQ4c8cZ9YFnFVs10d/view?usp=sharing"
+            class="btn-link"
+            style="background-color: #fef3c7; color: #d97706"
+            >🎥 Bekijk testmoment 1</a
+          >
+          <a
+            href="https://drive.google.com/file/d/1xBgS-FH3w_2aMnEoqAqzaOX4BjNNyA7Q/view?usp=sharing"
+            class="btn-link"
+            style="background-color: #f3e8ff; color: #6b21a8"
+            >🎥 Bekijk testmoment 2</a
+          >
+        </div>
+
+        <div class="card-data" style="margin-top: 2rem">
+          <h4>
+            👁️ Belangrijkste observaties tijdens het testmoment met
+            leerkrachten:
+          </h4>
+          <p style="font-size: 0.95rem; margin-bottom: 0.5rem">
+            Tijdens het filmen en testen van het prototype kwamen er een paar
+            hele praktische werkpunten naar voren:
+          </p>
+          <ul style="margin-left: 1rem; font-size: 0.95rem">
+            <li>
+              <strong>Beperkte vraagsoorten:</strong> Op dit moment werken
+              alleen de meerkeuzevragen vlekkeloos. Open vragen kunnen wel, maar
+              dan mag het antwoord maar één woord zijn en moet de game
+              hoofdletters negeren om fouten te voorkomen.
+            </li>
+            <li>
+              <strong>Onduidelijkheid in de interface:</strong> Bij het invullen
+              van de vragen was het voor de leerkrachten niet meteen duidelijk
+              waar de titel en andere elementen moesten staan. Dit moest ik
+              tijdens de test nog zelf uitleggen.
+            </li>
+            <li>
+              <strong>Besturing tijdens het spelen:</strong> Een leerkracht
+              probeerde de 'Enter'-toets te gebruiken om te bevestigen, terwijl
+              ze echt moesten klikken. Dit is een belangrijk leermoment: als het
+              voor een leerkracht niet meteen logisch is, zal een leerling hier
+              ook tegenaan lopen.
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-data" style="margin-top: 1.5rem">
+          <h4>💬 Waardevolle feedback van collega's na afloop:</h4>
+          <p style="font-size: 0.95rem; margin-bottom: 0.5rem">
+            Na het testen gaven de leerkrachten constructieve feedback over hoe
+            de tool in een echte schoolomgeving zou werken:
+          </p>
+          <ul style="margin-left: 1rem; font-size: 0.95rem">
+            <li>
+              <strong>Spieken en parallelklassen:</strong> Leerlingen uit
+              parallelklassen geven de antwoorden van zo'n game heel snel aan
+              elkaar door. Daarnaast staat de score momenteel erg groot in
+              beeld, waardoor klasgenoten makkelijk kunnen meespieden op elkaars
+              scherm.
+            </li>
+            <li>
+              <strong>Demotiverende tussenscores:</strong> Het tonen van de
+              score na élke vraag kan bij een grote toets demotiverend werken
+              als een leerling slecht start. Het is beter om enkel algemene
+              feedback per vraag te geven en de score slechts op het einde te
+              tonen.
+            </li>
+            <li>
+              <strong>Doelgroep:</strong> De tool sluit qua leerstof en inhouden
+              perfect aan bij de eerste graad. Voor hogere jaren schiet het
+              concept nu nog tekort, omdat de leerstof daar veel diepgaander
+              moet zijn dan een basisgame toelaat.
+            </li>
+            <li>
+              <strong>Tijdrovend:</strong> Net als bij Bookwidgets vinden
+              leerkrachten het maken van zo'n evaluatie best tijdrovend. Door
+              tijdsgebrek in het algemeen kan dit een drempel zijn om de tool
+              vaak te gebruiken.
+            </li>
+            <li>
+              <strong>Groot enthousiasme:</strong> Ondanks de werkpunten vindt
+              iedereen het een superleuk idee en concept. Het is fantastisch
+              voor de motivatie van de leerlingen en de collega's staan er dan
+              ook heel erg voor open!
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Section 8: Reflectie -->
+      <!-- Section 8: Reflectie -->
+      <section id="reflectie-toekomst">
+        <h3>Conclusie, reflectie en toekomst</h3>
+        <p>
+          Na alle testfases en bevragingen kan ik de hoofdvraag van mijn
+          onderzoek volmondig beantwoorden: ja, een gamified evaluatievorm heeft
+          een grote, positieve invloed op leerlingen. Omdat de leerdoelen en
+          criteria hetzelfde bleven, lieten de resultaten pure winst zien: de
+          intrinsieke startmotivatie schoot omhoog, de focus en betrokkenheid
+          steeg en de gemiddelde leerresultaten klommen omhoog. Het welbevinden
+          in de klas kreeg een enorme boost, aangezien de ervaren stress daalde
+          van 72% naar slechts 21%.
+        </p>
+        <p>
+          Ook de leerkrachten staan er erg voor open en zien direct in dat het
+          de teststress vermindert. Maar er zijn natuurlijk ook kanttekeningen.
+          Het maken van zo'n game brengt drempels met zich mee op het vlak van
+          tijd en techniek , waardoor goede ondersteuning onmisbaar is. Mijn
+          eigen visie is dat we dit soort games vooral kunnen inzetten als
+          kortere exit-tickets en kleinere toetsen in plaats van grote
+          herhalingstoetsen. Afwisseling is en blijft noodzakelijk. Voor een vak
+          als ICT en bepaalde inhouden in de eerste graad leunt dit concept nu
+          eenmaal veel beter aan dan voor complexere leerstof in de hogere
+          jaren.
+        </p>
+
+        <div
+          class="card-data"
+          style="margin-bottom: 1.5rem; border-left: 4px solid var(--primary)"
+        >
+          <h4>1. Wat heb ik geleerd uit dit onderzoek?</h4>
+          <p style="font-size: 0.95rem">
+            Ik heb geleerd dat de psychologische framing en de visuele context
+            van een evaluatie een gigantische impact hebben op de prestaties van
+            een leerling. Wanneer je een toets aankondigt met het beladen woord
+            "toets", slaan angst en stress meteen toe en daalt de motivatie. Als
+            we als leerkrachten simpelweg die aankondiging al aanpakken, kunnen
+            we het welzijn van onze leerlingen meteen verhogen.
+          </p>
+          <p style="font-size: 0.95rem; margin-top: 0.5rem">
+            Daar hoeven we niet eens altijd ingewikkelde games voor te
+            ontwikkelen; het woord "toets" eens weglaten of een simpel
+            kruiswoordraadsel aanbieden helpt al voldoende. Angst en stress
+            blokkeren immers cognitieve functies. Door gamificatie slim toe te
+            passen, verlagen we die affectieve filter. Hierdoor krijgen we als
+            leerkracht een veel zuiverder beeld van wat een leerling
+            daadwerkelijk beheerst, in plaats van hoe stressbestendig die
+            leerling is. Hun welbevinden gaat omhoog, zonder dat de kwaliteit
+            van de evaluatie daalt.
+          </p>
+        </div>
+
+        <div
+          class="card-data"
+          style="margin-bottom: 1.5rem; border-left: 4px solid var(--primary)"
+        >
+          <h4>2. Wat neem ik concreet mee als leerkracht?</h4>
+          <p style="font-size: 0.95rem">
+            Als leerkracht neem ik mee dat formatieve elementen, zoals directe
+            feedbacklussen, onmisbaar zijn in een modern klaslokaal. Evaluatie
+            mag geen eng eindstation zijn, maar moet een helder leermoment
+            worden. Ik zal traditionele pen-en-papier-toetsen kritisch blijven
+            bevragen op hun effectiviteit en welzijnseffecten, en actiever
+            zoeken naar alternatieve digitale vormen.
+          </p>
+          <p style="font-size: 0.95rem; margin-top: 0.5rem">
+            Het hoeven echt niet altijd zelfgebouwde games te zijn; bestaande
+            tools zoals Kahoot, Bookwidgets of Google's Interland helpen ook al
+            enorm en zijn technisch veel minder moeilijk te implementeren voor
+            het hele lerarenkorps.
+          </p>
+        </div>
+
+        <div
+          class="card-data"
+          style="margin-bottom: 1.5rem; border-left: 4px solid var(--primary)"
+        >
+          <h4>3. Hoe inspireren deze resultaten mij voor de toekomst?</h4>
+          <p style="font-size: 0.95rem">
+            De resultaten bewijzen zwart-op-wit dat onderwijsinnovatie loont en
+            dat onze leerlingen nood hebben aan interactieve les- en
+            evaluatievormen. Dit inspireert mij om deze visie niet te beperken
+            tot mijn eigen seminarie, maar breder te trekken naar een
+            vakoverstijgende aanpak binnen de hele schoolorganisatie.
+          </p>
+          <p style="font-size: 0.95rem; margin-top: 0.5rem">
+            En wie weet wat de toekomst brengt: met mijn technische achtergrond
+            zou ik dit prototype op termijn volledig kunnen uitwerken tot een
+            volwaardig, wetenschappelijk onderbouwd platform à la Kahoot, zodat
+            leerkrachten wereldwijd het eenvoudig kunnen testen en inzetten.
+          </p>
+        </div>
+
+        <div class="card-data" style="background-color: var(--slate-100)">
+          <h4>🔮 Toekomstperspectief &amp; Nuancering</h4>
+          <p style="font-size: 0.95rem; margin-bottom: 0.5rem">
+            Hoewel de resultaten overweldigend positief zijn, is een kritische
+            en nuchtere blik noodzakelijk voor een succesvolle, schoolbrede
+            uitrol:
+          </p>
+          <ul style="margin-left: 1rem; font-size: 0.95rem">
+            <li>
+              <strong>Vakgeschiktheid:</strong> Niet elk vak of elk specifiek
+              leerdoel leent zich even optimaal voor een spelvorm.
+            </li>
+            <li>
+              <strong>Leerlingenprofielen:</strong> Niet elke unieke leerling
+              houdt van of gedijt bij competitieve of digitale games.
+            </li>
+            <li>
+              <strong>Leerkrachtenbereidheid:</strong> Niet elke leerkracht
+              staat direct open voor deze digitale transitie; intensieve en
+              laagdrempelige professionele ondersteuning is vereist.
+            </li>
+          </ul>
+          <p style="font-size: 0.95rem; margin-top: 0.75rem; font-weight: bold">
+            Conclusie: Game-based evaluatie vormt een uiterst waardevolle en
+            noodzakelijke aanvulling op de klassieke evaluatiemethoden, met een
+            enorm potentieel voor verdere schoolbrede implementatie!
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 9: Literatuur & Bronnen -->
+      <section id="inspiratie-literatuur">
+        <h3>Inspiratie & literatuurlijst</h3>
+        <p>
+          Voor dit onderzoek heb ik een heleboel inspiratie gehaald uit
+          bestaande tools rond gamification. Ik heb heel bewust gekeken naar hoe
+          zij het aanpakten, om van daaruit een heel eigen concept te
+          ontwikkelen. Mijn doel was om echt iets anders te maken dan wat er al
+          bestond: een volwaardige game die specifiek ontworpen is om te
+          gebruiken als een echte toetsomgeving.
+        </p>
+        <p>
+          Daarnaast ben ik dit onderzoek gestart met het lezen van verschillende
+          interessante bronnen over motivatie en lesgeven met gamification,
+          onder andere van de AP Hogeschool, Klasse en de Universiteit
+          Antwerpen. Hoewel ik deze theorieën niet allemaal rechtstreeks in het
+          experiment heb toegepast, was het voor mij wel ontzettend nuttige
+          achtergrondinformatie om het project goed te onderbouwen.
+        </p>
+        <p>
+          Tot slot heb ik voor het nalezen van mijn teksten, het structureren
+          van de website en het schrijven van delen van de code gebruikgemaakt
+          van AI-tools zoals Gemini, ChatGPT en CoPilot (die laatste
+          rechtstreeks binnen VS Code). Belangrijk om te vermelden is dat alle
+          teksten door mijzelf geschreven zijn en dat ook de game en alle
+          bijbehorende code door mijzelf zijn gemaakt. De AI-tools dienden als
+          hulp ter ondersteuning: om het ontwikkelproces te versnellen en om er
+          zeker van te zijn dat er geen typfouten in de teksten zijn geslopen.
+        </p>
+
+        <div class="grid-2">
+          <div class="card-data">
+            <h4>Inspiratie</h4>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
+              <a
+                href="https://kahoot.com/nl/"
+                class="btn-link"
+                style="background-color: #e2fee0; color: #03a142"
+                >Kahoot!</a
+              >
+              <a
+                href="https://beinternetawesome.withgoogle.com/nl_be/interland/"
+                class="btn-link"
+                style="background-color: #fef3c7; color: #d97706"
+                >Interland The Game</a
+              >
+              <a
+                href="https://www.bookwidgets.com/"
+                class="btn-link"
+                style="background-color: #f3e8ff; color: #6b21a8"
+                >Bookwidgets</a
+              >
+              <a
+                href="https://codecombat.com/"
+                class="btn-link"
+                style="background-color: #fee0e8; color: #a10335"
+                >CodeCombat</a
+              >
+              <a
+                href="https://education.minecraft.net/en-us"
+                class="btn-link"
+                style="background-color: #e0f2fe; color: #0369a1"
+                >Minecraft Education</a
+              >
+            </div>
+          </div>
+          <div class="card-data">
+            <h4>Literatuurlijst</h4>
+            <ol
+              style="
+                margin-left: 1rem;
+                font-size: 0.9rem;
+                color: var(--slate-600);
+              "
+            >
+              <li style="margin-top: 0.75rem">
+                Anete. (2024, 9 februari). What are Game-based Assessments? -
+                Equalture.
+                <em
+                  >Equalture - Unbiased, competency-based hiring through
+                  gamification</em
+                >.
+                <a
+                  href="https://www.equalture.com/blog/what-are-game-based-assessments/"
+                  target="_blank"
+                  style="color: var(--primary); text-decoration: none"
+                  >https://www.equalture.com/blog/what-are-game-based-assessments/</a
+                >
+              </li>
+              <li style="margin-top: 0.75rem">
+                AP Hogeschool test praktijkmodel voor game-based learning.
+                (z.d.).
+                <em>AP Hogeschool</em>.
+                <a
+                  href="https://www.ap.be/artikel/ap-hogeschool-test-praktijkmodel-voor-game-based-learning"
+                  target="_blank"
+                  style="color: var(--primary); text-decoration: none"
+                  >https://www.ap.be/artikel/ap-hogeschool-test-praktijkmodel-voor-game-based-learning</a
+                >
+              </li>
+              <li style="margin-top: 0.75rem">
+                Beerens, N. (2026, 2 april).
+                <em>Games in de klas: wanneer werken ze?</em> Klasse.
+                <a
+                  href="https://www.klasse.be/520648/games-in-de-klas-wanneer-werken-ze/"
+                  target="_blank"
+                  style="color: var(--primary); text-decoration: none"
+                  >https://www.klasse.be/520648/games-in-de-klas-wanneer-werken-ze/</a
+                >
+              </li>
+              <li style="margin-top: 0.75rem">
+                Cel iSTEM inkleuren. (2024, 31 oktober).
+                <em>Gamification • iSTEM</em>. iSTEM.
+                <a
+                  href="https://www.istem.be/inspiratiebron/gamification/"
+                  target="_blank"
+                  style="color: var(--primary); text-decoration: none"
+                  >https://www.istem.be/inspiratiebron/gamification/</a
+                >
+              </li>
+              <li style="margin-top: 0.75rem">
+                <em
+                  >Gamification en game-based teaching in het hoger onderwijs |
+                  ExpertiseCentrum Hoger Onderwijs | Universiteit Antwerpen</em
+                >. (z.d.).
+                <a
+                  href="https://www.uantwerpen.be/nl/centra/expertisecentrum-hoger-onderwijs/didactische-info/onderwijstips-chronologisch/2025-2026/gamification/"
+                  target="_blank"
+                  style="color: var(--primary); text-decoration: none"
+                  >https://www.uantwerpen.be/nl/centra/expertisecentrum-hoger-onderwijs/didactische-info/onderwijstips-chronologisch/2025-2026/gamification/</a
+                >
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- JavaScript voor menu-scrolling & genereren interactieve grafieken -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- 1. CODE VOOR HIGH-LIGHTING VAN SIDEBAR MENU ---
+        const links = document.querySelectorAll("nav ul li a");
+        const sections = document.querySelectorAll("section");
+
+        window.addEventListener("scroll", () => {
+          let current = "";
+          sections.forEach((section) => {
+            const sectionTop = section.offsetTop;
+            if (pageYOffset >= sectionTop - 150) {
+              current = section.getAttribute("id");
+            }
+          });
+
+          links.forEach((a) => {
+            a.classList.remove("active");
+            if (a.getAttribute("href") === `#${current}`) {
+              a.classList.add("active");
+            }
+          });
+        });
+
+        // --- 2. CONFIGURATIE INTERACTIEVE GRAFIEKEN (CHART.JS) ---
+        // Algemene opties voor horizontale staafdiagrammen
+        const baseOptions = {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return " " + context.raw + "% van de leerlingen";
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              max: 100,
+              grid: { display: false },
+              ticks: { callback: (value) => value + "%" },
+            },
+            y: { grid: { display: false } },
+          },
+        };
+
+        // Grafiek 1: Stress & Faalangst (Lager is beter)
+        new Chart(document.getElementById("stressChart"), {
+          type: "bar",
+          data: {
+            labels: ["Klassieke toets", "Game-based evaluatie"],
+            datasets: [
+              {
+                data: [72, 21],
+                backgroundColor: ["#ef4444", "#10b981"],
+                borderRadius: 6,
+                borderWidth: 0,
+                barThickness: 28,
+              },
+            ],
+          },
+          options: baseOptions,
+        });
+
+        // Grafiek 2: Motivatie (Hoger is beter)
+        new Chart(document.getElementById("motivationChart"), {
+          type: "bar",
+          data: {
+            labels: ["Klassieke toets", "Game-based evaluatie"],
+            datasets: [
+              {
+                data: [16, 84],
+                backgroundColor: ["#ef4444", "#10b981"],
+                borderRadius: 6,
+                borderWidth: 0,
+                barThickness: 28,
+              },
+            ],
+          },
+          options: baseOptions,
+        });
+
+        // Grafiek 3: Betrokkenheid & Focus (Hoger is beter)
+        new Chart(document.getElementById("focusChart"), {
+          type: "bar",
+          data: {
+            labels: ["Klassieke toets", "Game-based evaluatie"],
+            datasets: [
+              {
+                data: [43, 91],
+                backgroundColor: ["#ef4444", "#10b981"],
+                borderRadius: 6,
+                borderWidth: 0,
+                barThickness: 28,
+              },
+            ],
+          },
+          options: baseOptions,
+        });
+
+        // Grafiek 4: Feedback & Inzicht (Hoger is beter)
+        new Chart(document.getElementById("feedbackChart"), {
+          type: "bar",
+          data: {
+            labels: ["Klassieke toets", "Game-based evaluatie"],
+            datasets: [
+              {
+                data: [31, 88],
+                backgroundColor: ["#ef4444", "#10b981"],
+                borderRadius: 6,
+                borderWidth: 0,
+                barThickness: 28,
+              },
+            ],
+          },
+          options: baseOptions,
+        });
+      });
+    </script>
+  </body>
+</html>
